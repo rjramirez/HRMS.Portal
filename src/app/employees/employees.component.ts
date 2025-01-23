@@ -42,13 +42,14 @@ export class EmployeesComponent implements OnInit {
           FirstName: emp.firstName,
           LastName: emp.lastName,
           Active: emp.active,
+          EmployeeRoles: emp.employeeRoles,
           SupervisorId: emp.supervisorId,
           CreatedDate: emp.createdDate,
           CreatedBy: emp.createdBy,
           UpdatedDate: emp.updatedDate,
           UpdatedBy: emp.updatedBy,
         }));
-
+        console.log(this.employees);
         this.supervisors = this.employees;
         this.loadingService.hide();
       },
@@ -69,6 +70,7 @@ export class EmployeesComponent implements OnInit {
       FirstName: '', 
       LastName: '', 
       Active: true,
+      EmployeeRoles: [],
       SupervisorId: 0, 
       CreatedDate: new Date(), 
       CreatedBy: '', 

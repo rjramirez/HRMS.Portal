@@ -19,12 +19,15 @@
         <input type="email" id="email" [(ngModel)]="employee!.EmployeeEmail" name="email" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
       </div>
       <div>
-        <label for="supervisorId" class="block text-sm font-medium text-gray-700">Supervisor {{ employee!.SupervisorId }}</label>
-        <select id="supervisorId" [(ngModel)]="employee!.SupervisorId" name="supervisorId" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+        <label for="supervisorId" class="block text-sm font-medium text-gray-700">Supervisor</label>
+        <select id="supervisorId" 
+                name="supervisorId" 
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
           <option [value]="0">None</option>
-          <option *ngFor="let supervisor of supervisors" 
-                  [value]="supervisor.EmployeeId"
-                  [selected]="supervisor.EmployeeNumber === employee?.SupervisorId ">
+          <option *ngFor="let supervisor of supervisors"
+                  [ngValue]="supervisor.EmployeeId"
+                  [selected]="supervisor.EmployeeNumber === employee!.SupervisorId"
+                  [value]="supervisor.EmployeeId">
             {{ supervisor.FirstName }} {{ supervisor.LastName }}
           </option>
         </select>

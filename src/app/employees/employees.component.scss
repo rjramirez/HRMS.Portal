@@ -1,29 +1,24 @@
 .container {
-    padding: 20px;
+    @apply p-4 mx-auto;
   
     table {
-      width: 100%;
-      border-collapse: collapse;
+      @apply w-full border-collapse;
   
       th, td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
+        @apply border border-gray-300 p-2 text-left;
       }
   
       th {
-        background-color: #f4f4f4;
+        @apply bg-gray-50;
       }
   
       tbody tr:nth-child(even) {
-        background-color: #f9f9f9;
+        @apply bg-gray-100;
       }
     }
   
     button {
-      margin-right: 5px;
-      padding: 5px 10px;
-      cursor: pointer;
+      @apply mr-2 p-2 cursor-pointer;
     }
   }
   

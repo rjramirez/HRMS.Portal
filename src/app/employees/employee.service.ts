@@ -1,55 +1,34 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Employee } from './employee.model';
+import { environment } from '../environments/environment.dev';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EmployeeService {
-  private employees: Employee[] = [
-    {
-      employeeId: 1,
-      employeeEmail: 'john.doe@example.com',
-      firstName: 'John',
-      lastName: 'Doe',
-      supervisorId: null,
-      active: true,
-      createdAt: new Date(),
-      createdBy: 'admin',
-      updatedAt: null,
-      updatedBy: null
-    },
-    {
-      employeeId: 2,
-      employeeEmail: 'jane.smith@example.com',
-      firstName: 'Jane',
-      lastName: 'Smith',
-      supervisorId: 1,
-      active: true,
-      createdAt: new Date(),
-      createdBy: 'admin',
-      updatedAt: null,
-      updatedBy: null
-    }
-  ];
+  private apiUrl = `${environment.apiUrl}/Employee/GetEmployees`; // Define the API URL
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {} // Inject HttpClient
 
+  //Get All Employees
   getEmployees(): Observable<Employee[]> {
-    // For now, return mock data. Later, replace with actual HTTP call
-    return of(this.employees);
+    return this.http.get<Employee[]>(this.apiUrl); // Implement the getEmployees method
   }
 
+  // Add a new Employee
   addEmployee(employee: Employee): Observable<Employee> {
-    return of(employee);
+    return this.http.post<Employee>(this.apiUrl, employee); // Example for adding an employee
   }
 
+  // Update an existing Employee
   updateEmployee(employee: Employee): Observable<Employee> {
-    return of(employee);
+    return this.http.put<Employee>(`${this.apiUrl}/${employee.EmployeeId}`, employee); // Example for updating an employee
   }
 
+  // Delete an Employee
   deleteEmployee(id: number): Observable<void> {
-    return of(void 0);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`); // Example for deleting an employee
   }
 }

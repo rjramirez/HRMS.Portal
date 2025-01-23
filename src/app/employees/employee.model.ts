@@ -1,22 +1,23 @@
 export interface Employee {
-    employeeId: number;
-    employeeEmail: string;
-    firstName: string;
-    lastName: string;
-    supervisorId: number | null;
-    active: boolean;
-    createdAt: Date;
-    createdBy: string;
-    updatedAt: Date | null;
-    updatedBy: string | null;
+    EmployeeId: number;
+    EmployeeNumber: number;
+    EmployeeEmail: string;
+    FirstName: string;
+    LastName: string;
+    SupervisorId: number;
+    Active: boolean;
+    CreatedDate: Date;
+    CreatedBy: string;
+    UpdatedDate: Date;
+    UpdatedBy: string;
   }
 
   export interface EmployeeForm {
-    employeeId: number;
-    employeeEmail: string;
-    firstName: string;
-    lastName: string;
-    supervisorId: number | null;
-    active: boolean;
+    EmployeeId: number;
+    EmployeeEmail: string;
+    FirstName: string;
+    LastName: string;
+    SupervisorId: number;
+    Active: boolean;
   }
   

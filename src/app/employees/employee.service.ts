@@ -8,27 +8,27 @@ import { environment } from '../environments/environment.dev';
   providedIn: 'root'
 })
 export class EmployeeService {
-  private apiUrl = `${environment.apiUrl}/Employee/GetEmployees`; // Define the API URL
+  private apiUrl = `${environment.apiUrl}/Employee`;
 
-  constructor(private http: HttpClient) {} // Inject HttpClient
+  constructor(private http: HttpClient) {}
 
-  //Get All Employees
+  // Get All Employees
   getEmployees(): Observable<Employee[]> {
-    return this.http.get<Employee[]>(this.apiUrl); // Implement the getEmployees method
+    return this.http.get<Employee[]>(`${this.apiUrl}/GetEmployees`);
   }
 
   // Add a new Employee
   addEmployee(employee: Employee): Observable<Employee> {
-    return this.http.post<Employee>(this.apiUrl, employee); // Example for adding an employee
+    return this.http.post<Employee>(`${this.apiUrl}/AddEmployee`, employee);
   }
 
   // Update an existing Employee
   updateEmployee(employee: Employee): Observable<Employee> {
-    return this.http.put<Employee>(`${this.apiUrl}/${employee.EmployeeId}`, employee); // Example for updating an employee
+    return this.http.put<Employee>(`${this.apiUrl}/UpdateEmployee`, employee);
   }
 
   // Delete an Employee
-  deleteEmployee(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`); // Example for deleting an employee
+  deleteEmployee(employeeNumber: number): Observable<number> {
+    return this.http.delete<number>(`${this.apiUrl}/DeleteEmployee/${employeeNumber}`);
   }
 }

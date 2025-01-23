@@ -2,19 +2,27 @@ import { Component, signal, HostListener, ElementRef, ViewChild } from '@angular
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './services/auth.service';
+import { LoadingSpinnerComponent } from './shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, CommonModule],
+  imports: [RouterOutlet, RouterLink, CommonModule, LoadingSpinnerComponent],
   template: `
+    <app-loading-spinner></app-loading-spinner>
     <ng-container *ngIf="!isErrorPage(); else fullPageContent">
       <div class="min-h-screen bg-gray-50">
         <!-- Sidebar -->
         <aside 
+          #sidebar
           *ngIf="authService.user()"
           [class]="isSidebarOpen() ? 'translate-x-0' : '-translate-x-64'"
-          class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform bg-white border-r border-gray-200">
+          class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform bg-white border-r border-gray-200"
+          (mouseenter)="onSidebarHover(true)"
+          (mouseleave)="onSidebarHover(false)"
+          (focusin)="onSidebarHover(true)"
+          (focusout)="onSidebarHover(false)"
+        >
           <!-- Sidebar Header -->
           <div class="flex items-center justify-between p-4 border-b">
             <span class="text-2xl font-bold text-indigo-600">HRMS</span>
@@ -126,22 +134,39 @@ import { AuthService } from './services/auth.service';
 export class AppComponent {
   showDropdown = false;
   isSidebarOpen = signal(false);
+  isLargeScreen = signal(window.innerWidth >= 1024); // 1024px is the lg breakpoint in Tailwind
+  @ViewChild('sidebar') sidebar!: ElementRef;
 
   constructor(
     public authService: AuthService
-  ) {}
+  ) {
+    this.checkScreenSize();
+  }
+
+  @HostListener('window:resize')
+  checkScreenSize() {
+    this.isLargeScreen.set(window.innerWidth >= 1024);
+    if (this.isLargeScreen()) {
+      this.isSidebarOpen.set(true);
+    } else {
+      this.isSidebarOpen.set(false);
+    }
+  }
 
   toggleSidebar() {
-    this.isSidebarOpen.update(value => !value);
+    if (!this.isLargeScreen()) {
+      this.isSidebarOpen.update(value => !value);
+    }
+  }
+
+  onSidebarHover(isHovered: boolean) {
+    if (!this.isLargeScreen()) {
+      this.isSidebarOpen.set(isHovered);
+    }
   }
 
   signOut() {
-    this.showDropdown = false;
     this.authService.signOut();
-  }
-
-  isLoginPage(): boolean {
-    return window.location.pathname.startsWith('/auth/login');
   }
 
   isErrorPage(): boolean {

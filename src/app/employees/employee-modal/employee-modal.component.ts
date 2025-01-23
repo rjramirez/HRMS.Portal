@@ -1,26 +1,28 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Employee } from '../employee.model';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-employee-modal',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './employee-modal.component.html',
   styleUrls: ['./employee-modal.component.scss']
 })
 export class EmployeeModalComponent {
-  @Input() employee: Employee | null = null; // Allow null
-  @Output() save = new EventEmitter<Employee>(); // Event to emit when saving
-  @Output() close = new EventEmitter<void>(); // Event to emit when closing
+  @Input() employee: Employee | null = null;
+  @Input() supervisors: Employee[] = [];
+  @Output() save = new EventEmitter<Employee>();
+  @Output() close = new EventEmitter<void>();
 
   onSave() {
     if (this.employee) {
-      this.save.emit(this.employee); // Emit the employee data
+      this.save.emit(this.employee);
     }
   }
 
   onClose() {
-    this.close.emit(); // Emit close event
+    this.close.emit();
   }
 }

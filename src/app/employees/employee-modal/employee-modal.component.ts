@@ -57,17 +57,22 @@ export class EmployeeModalComponent implements OnInit {
   }
 
   selectRole(role: RoleDetail) {
-    if (!this.employee?.EmployeeRoles.some(r => r.roleDetail.roleId === role.roleId)) {
-      this.employee?.EmployeeRoles.push({
-        employeeRoleId: 0,
-        employeeId: this.employee?.EmployeeId,
-        roleDetail: role,
-        createdDate: new Date(),
-        createdBy: 'User'
-      });
+    // Check if the role is already selected
+    const isRoleAlreadySelected = this.employee?.EmployeeRoles.some(r => r.roleDetail.roleId === role.roleId);
+    
+    if (!isRoleAlreadySelected) {
+        this.employee?.EmployeeRoles.push({
+            employeeRoleId: 0, // Assuming new role, set to 0 or appropriate value
+            employeeId: this.employee?.EmployeeId,
+            roleDetail: role,
+            createdDate: new Date(),
+            createdBy: 'User' // Replace with actual user if needed
+        });
     }
-    this.roleSearch = '';
-    this.showRoleDropdown = false;
+    
+    this.roleSearch = ''; // Clear the search input
+    this.filteredRoles = this.availableRoles; // Reset filtered roles
+    this.showRoleDropdown = false; // Close the dropdown
   }
 
   removeRole(role: EmployeeRole) {

@@ -55,7 +55,16 @@ export class EmployeesComponent implements OnInit {
           this.employeeRoles = response.map((role: any) => ({
             employeeRoleId: role.employeeRoleId,
             employeeId: role.employeeId,
-            roleDetail: role.roleDetail,
+            roleDetail: role.roleDetail.filter((r: any) => r.active).map((r: any) => ({
+              roleId: r.roleId,
+              roleName: r.roleName,
+              roleDescription: r.roleDescription,
+              active: r.active,
+              createdDate: r.createdDate,
+              createdBy: r.createdBy,
+              updatedDate: r.updatedDate,
+              updatedBy: r.updatedBy
+            })),
             createdDate: role.createdDate,
             createdBy: role.createdBy,
           }));

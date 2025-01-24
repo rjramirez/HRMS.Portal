@@ -148,7 +148,7 @@ export class EmployeeModalComponent implements OnInit {
     }
     
     this.roleSearchControl.setValue(''); 
-    this.filteredRoles = this.availableRoles; 
+    this.filteredRoles = [...this.availableRoles];
     this.showRoleDropdown = false; 
   }
 

@@ -44,7 +44,8 @@
   <!-- Include the Employee Modal -->
   <app-employee-modal 
     *ngIf="isModalOpen" 
-    [employee]="selectedEmployee"
+    [employee]="selectedEmployee!"
+    [employeeRoles]="employeeRoles"
     [supervisors]="supervisors"
     (save)="saveEmployee($event)" 
     (close)="closeModal()">

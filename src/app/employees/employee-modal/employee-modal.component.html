@@ -25,18 +25,67 @@
         <input type="email" id="email" [(ngModel)]="employee!.EmployeeEmail" name="email" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
       </div>
       <div>
-        <label for="supervisorId" class="block text-sm font-medium text-gray-700">Supervisor</label>
-        <select id="supervisorId" 
-                name="supervisorId" 
-                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-          <option [value]="0">None</option>
-          <option *ngFor="let supervisor of supervisors"
-                  [ngValue]="supervisor.EmployeeId"
-                  [selected]="supervisor.EmployeeNumber === employee!.SupervisorId"
-                  [value]="supervisor.EmployeeId">
-            {{ supervisor.FirstName }} {{ supervisor.LastName }}
-          </option>
-        </select>
+        <label for="supervisorSearch" class="block text-sm font-medium text-gray-700">Supervisor</label>
+        <div class="relative">
+          <input 
+            type="text" 
+            id="supervisorSearch" 
+            name="supervisorSearch" 
+            [(ngModel)]="supervisorSearch"
+            (ngModelChange)="filterSupervisors()"
+            (focus)="onSupervisorFocus()"
+            (blur)="onSupervisorBlur()"
+            placeholder="Search supervisor by name or employee number"
+            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <div *ngIf="showSupervisorDropdown && filteredSupervisors.length > 0" 
+               class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+            <ul>
+              <li 
+                *ngFor="let supervisor of filteredSupervisors" 
+                (mousedown)="selectSupervisor(supervisor)"
+                class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+              >
+                {{ supervisor.FirstName }} {{ supervisor.LastName }} ({{ supervisor.EmployeeNumber }})
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label for="roleSearch" class="block text-sm font-medium text-gray-700">Roles</label>
+        <div class="relative">
+          <input 
+            type="text" 
+            id="roleSearch" 
+            name="roleSearch" 
+            [(ngModel)]="roleSearch"
+            (ngModelChange)="filterRoles()"
+            (focus)="onRoleFocus()"
+            (blur)="onRoleBlur()"
+            placeholder="Search roles"
+            class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <div *ngIf="showRoleDropdown && filteredRoles.length > 0" 
+               class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+            <ul>
+              <li 
+                *ngFor="let role of filteredRoles" 
+                (mousedown)="selectRole(role)"
+                class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+              >
+                {{ role.roleName }}
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="mt-2">
+          <span *ngFor="let role of employee?.EmployeeRoles" 
+                class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
+            {{ role.roleDetail.roleName }}
+            <button (click)="removeRole(role)" class="ml-1 text-red-500">×</button>
+          </span>
+        </div>
       </div>
       <div class="mt-4">
         <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Save</button>

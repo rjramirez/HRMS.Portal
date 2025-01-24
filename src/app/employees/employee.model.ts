@@ -18,11 +18,8 @@ export interface Employee {
     employeeRoleId: number;
     employeeId: number;
     roleDetail: RoleDetail;
-    active: boolean;
     createdDate: Date;
     createdBy: string;
-    updatedDate: Date;
-    updatedBy: string;
   }
 
   export interface RoleDetail {

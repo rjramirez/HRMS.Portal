@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Employee } from './employee.model';
+import { Employee, EmployeeRole } from './employee.model';
 import { environment } from '../environments/environment.dev';
 
 @Injectable({
@@ -15,6 +15,11 @@ export class EmployeeService {
   // Get All Employees
   getEmployees(): Observable<Employee[]> {
     return this.http.get<Employee[]>(`${this.apiUrl}/GetEmployees`);
+  }
+
+  // Get All EmployeeRoles
+  getEmployeeRoles(): Observable<EmployeeRole[]> {
+    return this.http.get<EmployeeRole[]>(`${this.apiUrl}/GetEmployeeRoles`);
   }
 
   // Add a new Employee

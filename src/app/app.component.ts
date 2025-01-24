@@ -154,9 +154,7 @@ export class AppComponent {
   }
 
   toggleSidebar() {
-    if (!this.isLargeScreen()) {
-      this.isSidebarOpen.update(value => !value);
-    }
+    this.isSidebarOpen.update(value => !value);
   }
 
   onSidebarHover(isHovered: boolean) {

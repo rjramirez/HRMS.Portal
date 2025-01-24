@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EmployeeService } from './employee.service';
-import { Employee } from './employee.model';
+import { Employee, EmployeeRole } from './employee.model';
 import { EmployeeModalComponent } from './employee-modal/employee-modal.component';
 import { ToastrService } from 'ngx-toastr';
 import { LoadingService } from '../core/services/loading.service';
@@ -17,6 +17,7 @@ import { LoadingService } from '../core/services/loading.service';
 export class EmployeesComponent implements OnInit {
   employees: Employee[] = [];
   supervisors: Employee[] = [];
+  employeeRoles: EmployeeRole[] = [];
   selectedEmployee: Employee | null = null;
   isModalOpen = false;
 
@@ -49,8 +50,17 @@ export class EmployeesComponent implements OnInit {
           UpdatedDate: emp.updatedDate,
           UpdatedBy: emp.updatedBy,
         }));
-        console.log(this.employees);
         this.supervisors = this.employees;
+        this.employeeService.getEmployeeRoles().subscribe((response) => {
+          this.employeeRoles = response.map((role: any) => ({
+            employeeRoleId: role.employeeRoleId,
+            employeeId: role.employeeId,
+            roleDetail: role.roleDetail,
+            createdDate: role.createdDate,
+            createdBy: role.createdBy,
+          }));
+          
+        });
         this.loadingService.hide();
       },
       error: (error) => {

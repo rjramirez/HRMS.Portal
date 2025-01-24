@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
-import { Employee, EmployeeRole, RoleDetail } from '../employee.model';
+import { Employee, RoleDetail } from '../employee.model';
 import { EmployeeService } from '../employee.service';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -14,7 +14,7 @@ import { CommonModule } from '@angular/common';
 export class EmployeeModalComponent implements OnInit {
   @Input() employee: Employee | null = null;
   @Input() supervisors!: Employee[];
-  @Input() employeeRoles!: EmployeeRole[];
+  @Input() roles!: RoleDetail[];
   @Output() save = new EventEmitter<Employee>();
   @Output() close = new EventEmitter<void>();
 
@@ -57,10 +57,10 @@ export class EmployeeModalComponent implements OnInit {
 
   ngOnInit() {
     // Fetch employee roles if not provided
-    if (!this.employeeRoles || this.employeeRoles.length === 0) {
+    if (!this.roles || this.roles.length === 0) {
       this.fetchEmployeeRoles();
     } else {
-      this.availableRoles = this.employeeRoles.flatMap(role => role.roleDetail);
+      this.availableRoles = this.roles;
       this.filteredRoles = this.availableRoles;
     }
 
@@ -92,34 +92,10 @@ export class EmployeeModalComponent implements OnInit {
 
   // Fetch employee roles from service
   fetchEmployeeRoles() {
-    this.employeeService.getEmployeeRoles().subscribe({
+    this.employeeService.getRoles().subscribe({
       next: (roles) => {
-        // Map roles to roleDetail, handling different possible data structures
-        this.employeeRoles = roles.map((role: any) => {
-          const roleDetails = Array.isArray(role.roleDetail) 
-            ? role.roleDetail.filter((r: any) => r.active).map((r: any) => ({
-                roleId: r.roleId,
-                roleName: r.roleName,
-                roleDescription: r.roleDescription,
-                active: r.active,
-                createdDate: r.createdDate,
-                createdBy: r.createdBy,
-                updatedDate: r.updatedDate,
-                updatedBy: r.updatedBy
-              }))
-            : role.roleDetail ? [role.roleDetail] : [];
-
-          return {
-            employeeRoleId: role.employeeRoleId,
-            employeeId: role.employeeId,
-            roleDetail: roleDetails,
-            createdDate: role.createdDate,
-            createdBy: role.createdBy,
-          };
-        });
-
-        // Set available roles and filtered roles
-        this.availableRoles = this.employeeRoles.flatMap(role => role.roleDetail);
+        // Filter active roles
+        this.availableRoles = roles.filter(role => role.active);
         this.filteredRoles = this.availableRoles;
       },
       error: (error) => {
@@ -129,9 +105,9 @@ export class EmployeeModalComponent implements OnInit {
   }
 
   filterRoles() {
-    const searchTerm = this.roleSearchControl.value?.toLowerCase();
+    const searchTerm = this.roleSearchControl.value?.toLowerCase() ?? '';
     this.filteredRoles = this.availableRoles.filter(role => 
-      role.roleName.toLowerCase().includes(searchTerm ?? '')
+      role.roleName.toLowerCase().includes(searchTerm)
     );
     this.showRoleDropdown = this.filteredRoles.length > 0;
   }
@@ -220,7 +196,12 @@ export class EmployeeModalComponent implements OnInit {
       LastName: this.formControls['lastName'].value,
       EmployeeEmail: this.formControls['email'].value,
       SupervisorId: this.formControls['supervisor'].value?.EmployeeNumber || 0,
-      EmployeeRoles: this.formControls['roles'].value || [],
+      EmployeeRoles: this.formControls['roles'].value.map((role: RoleDetail) => ({
+        RoleDetail: {
+          RoleId: role.roleId,
+          RoleName: role.roleName
+        }
+      })) || [],
       Active: true,
       CreatedBy: 'user',
       CreatedDate: new Date(),

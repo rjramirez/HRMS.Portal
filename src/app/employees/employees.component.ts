@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EmployeeService } from './employee.service';
-import { Employee, EmployeeRole } from './employee.model';
+import { Employee, RoleDetail } from './employee.model';
 import { EmployeeModalComponent } from './employee-modal/employee-modal.component';
 import { ToastrService } from 'ngx-toastr';
 import { LoadingService } from '../core/services/loading.service';
@@ -17,7 +17,7 @@ import { LoadingService } from '../core/services/loading.service';
 export class EmployeesComponent implements OnInit {
   employees: Employee[] = [];
   supervisors: Employee[] = [];
-  employeeRoles: EmployeeRole[] = [];
+  roles: RoleDetail[] = [];
   selectedEmployee: Employee | null = null;
   isModalOpen = false;
   employeeForm!: FormGroup;
@@ -63,29 +63,13 @@ export class EmployeesComponent implements OnInit {
           UpdatedBy: emp.updatedBy,
         }));
         this.supervisors = this.employees;
-        this.employeeService.getEmployeeRoles().subscribe((response) => {
-          this.employeeRoles = response.map((role: any) => {
-            const roleDetails = Array.isArray(role.roleDetail) 
-              ? role.roleDetail.filter((r: any) => r.active).map((r: any) => ({
-                  roleId: r.roleId,
-                  roleName: r.roleName,
-                  roleDescription: r.roleDescription,
-                  active: r.active,
-                  createdDate: r.createdDate,
-                  createdBy: r.createdBy,
-                  updatedDate: r.updatedDate,
-                  updatedBy: r.updatedBy
-                }))
-              : role.roleDetail ? [role.roleDetail] : [];
-
-            return {
-              employeeRoleId: role.employeeRoleId,
-              employeeId: role.employeeId,
-              roleDetail: roleDetails,
-              createdDate: role.createdDate,
-              createdBy: role.createdBy,
-            };
-          });
+        this.employeeService.getRoles().subscribe((response) => {
+          this.roles = response.map((role: any) => ({
+            roleId: role.roleId,
+            roleName: role.roleName,
+            roleDescription: role.roleDescription,
+            active: role.active
+          }));
         });
         this.loadingService.hide();
       },

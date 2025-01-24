@@ -5,7 +5,7 @@ export interface Employee {
     FirstName: string;
     LastName: string;
     SupervisorId: number;
-    EmployeeRoles: EmployeeRole[];
+    EmployeeRoles: RoleDetail[];
     Active: boolean;
     CreatedDate: Date;
     CreatedBy: string;
@@ -14,19 +14,11 @@ export interface Employee {
   }
 
 
-  export interface EmployeeRole {
-    employeeRoleId: number;
-    employeeId: number;
-    roleDetail: RoleDetail;
-    createdDate: Date;
-    createdBy: string;
-  }
-
   export interface RoleDetail {
     roleId: number;
     roleName: string;
     roleDescription: string;
-    active: boolean;
+    active?: boolean;
   }
 
   export interface EmployeeForm {
@@ -37,4 +29,3 @@ export interface Employee {
     SupervisorId: number;
     Active: boolean;
   }
-  

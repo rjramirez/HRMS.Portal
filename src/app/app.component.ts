@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from './services/auth.service';
 import { LoadingSpinnerComponent } from './shared/components/loading-spinner/loading-spinner.component';
 
+
 @Component({
   selector: 'app-root',
   standalone: true,

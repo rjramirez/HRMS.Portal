@@ -29,7 +29,7 @@
             <span *ngIf="employee.EmployeeRoles.length === 0" class="text-gray-500">No Roles</span>
             <span *ngFor="let role of employee.EmployeeRoles" 
                   class="rounded-full px-2 py-1 text-xs font-semibold text-gray-700 bg-gray-200">
-              {{ role.roleDetail.roleName }}
+              {{ role.roleName }}
             </span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -45,7 +45,7 @@
   <app-employee-modal 
     *ngIf="isModalOpen" 
     [employee]="selectedEmployee!"
-    [employeeRoles]="employeeRoles"
+    [roles]="roles"
     [supervisors]="supervisors"
     (save)="saveEmployee($event)" 
     (close)="closeModal()">

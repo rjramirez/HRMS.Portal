@@ -1,38 +1,71 @@
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
   <div class="bg-white rounded-lg p-6 w-96">
     <h3 class="text-lg font-semibold mb-4">{{ employee?.EmployeeId ? 'Edit Employee' : 'Add Employee' }}</h3>
-    <form (ngSubmit)="onSave()">
+    <form [formGroup]="employeeForm" (ngSubmit)="onSave()">
       <div *ngIf="employee?.EmployeeId">
         <label for="employeeNumber" class="block text-sm font-medium text-gray-700">Employee Number</label>
         <input type="text" 
-               disabled 
+               ngDisabled="true" 
                id="employeeNumber" 
-               [(ngModel)]="employee!.EmployeeNumber" 
-               name="employeeNumber" 
-               required 
+               formControlName="employeeNumber" 
                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm bg-gray-200 text-gray-500 cursor-not-allowed focus:ring-indigo-500 focus:border-indigo-500" />
       </div>
-      <div>
+      <div class="mb-4">
         <label for="firstName" class="block text-sm font-medium text-gray-700">First Name</label>
-        <input type="text" id="firstName" [(ngModel)]="employee!.FirstName" name="firstName" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+        <input 
+          type="text" 
+          id="firstName" 
+          formControlName="firstName" 
+          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+          [class.border-red-500]="hasError('firstName', 'required') || hasError('firstName', 'minlength')"
+        />
+        <p *ngIf="hasError('firstName', 'required')" class="text-red-500 text-xs mt-1">
+          First name is required
+        </p>
+        <p *ngIf="hasError('firstName', 'minlength')" class="text-red-500 text-xs mt-1">
+          First name must be at least 2 characters long
+        </p>
       </div>
-      <div>
+      <div class="mb-4">
         <label for="lastName" class="block text-sm font-medium text-gray-700">Last Name</label>
-        <input type="text" id="lastName" [(ngModel)]="employee!.LastName" name="lastName" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+        <input 
+          type="text" 
+          id="lastName" 
+          formControlName="lastName" 
+          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+          [class.border-red-500]="hasError('lastName', 'required') || hasError('lastName', 'minlength')"
+        />
+        <p *ngIf="hasError('lastName', 'required')" class="text-red-500 text-xs mt-1">
+          Last name is required
+        </p>
+        <p *ngIf="hasError('lastName', 'minlength')" class="text-red-500 text-xs mt-1">
+          Last name must be at least 2 characters long
+        </p>
       </div>
-      <div>
+      <div class="mb-4">
         <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-        <input type="email" id="email" [(ngModel)]="employee!.EmployeeEmail" name="email" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+        <input 
+          type="email" 
+          id="email" 
+          formControlName="email" 
+          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+          [class.border-red-500]="hasError('email', 'required') || hasError('email', 'email')"
+        />
+        <p *ngIf="hasError('email', 'required')" class="text-red-500 text-xs mt-1">
+          Email is required
+        </p>
+        <p *ngIf="hasError('email', 'email')" class="text-red-500 text-xs mt-1">
+          Please enter a valid email address
+        </p>
       </div>
-      <div>
+      <div class="mb-4">
         <label for="supervisorSearch" class="block text-sm font-medium text-gray-700">Supervisor</label>
         <div class="relative">
           <input 
             type="text" 
             id="supervisorSearch" 
-            name="supervisorSearch" 
-            [(ngModel)]="supervisorSearch"
-            (ngModelChange)="filterSupervisors()"
+            [formControl]="supervisorSearchControl"
+            (input)="filterSupervisors()"
             (focus)="onSupervisorFocus()"
             (blur)="onSupervisorBlur()"
             placeholder="Search supervisor by name or employee number"
@@ -52,15 +85,14 @@
           </div>
         </div>
       </div>
-      <div>
+      <div class="mb-4">
         <label for="roleSearch" class="block text-sm font-medium text-gray-700">Roles</label>
         <div class="relative">
           <input 
             type="text" 
             id="roleSearch" 
-            name="roleSearch" 
-            [(ngModel)]="roleSearch"
-            (ngModelChange)="filterRoles()"
+            [formControl]="roleSearchControl"
+            (input)="filterRoles()"
             (focus)="onRoleFocus()"
             (blur)="onRoleBlur()"
             placeholder="Search roles"
@@ -79,17 +111,35 @@
             </ul>
           </div>
         </div>
-        <div class="mt-2">
-          <span *ngFor="let role of employee?.EmployeeRoles" 
-                class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
-            {{ role.roleDetail.roleName }}
-            <button (click)="removeRole(role)" class="ml-1 text-red-500">×</button>
+        <div *ngIf="employeeForm.get('roles')?.value?.length > 0" class="mt-2 flex flex-wrap gap-2">
+          <span 
+            *ngFor="let role of employeeForm.get('roles')?.value" 
+            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"
+          >
+            {{ role.roleName }}
+            <button 
+              (click)="removeRole(role)"
+              class="ml-1 text-indigo-400 hover:text-indigo-600"
+            >
+              ×
+            </button>
           </span>
         </div>
       </div>
-      <div class="mt-4">
-        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Save</button>
-        <button type="button" (click)="onClose()" class="ml-2 px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">Cancel</button>
+      <div class="flex justify-end space-x-2 mt-6">
+        <button 
+          type="button" 
+          (click)="onClose()"
+          class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit" 
+          class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        >
+          Save
+        </button>
       </div>
     </form>
   </div>

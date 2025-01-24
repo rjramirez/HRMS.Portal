@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EmployeeService } from './employee.service';
 import { Employee, EmployeeRole } from './employee.model';
 import { EmployeeModalComponent } from './employee-modal/employee-modal.component';
@@ -10,7 +10,7 @@ import { LoadingService } from '../core/services/loading.service';
 @Component({
   selector: 'app-employees',
   standalone: true,
-  imports: [CommonModule, FormsModule, EmployeeModalComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, EmployeeModalComponent],
   templateUrl: './employees.component.html',
   styleUrls: ['./employees.component.scss']
 })
@@ -20,15 +20,27 @@ export class EmployeesComponent implements OnInit {
   employeeRoles: EmployeeRole[] = [];
   selectedEmployee: Employee | null = null;
   isModalOpen = false;
+  employeeForm!: FormGroup;
 
   constructor(
     private employeeService: EmployeeService, 
     private toastr: ToastrService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private formBuilder: FormBuilder
   ) {}
 
   ngOnInit() {
     this.loadEmployees();
+    this.employeeForm = this.formBuilder.group({
+      employeeId: [null],
+      firstName: ['', [Validators.required, Validators.minLength(2)]],
+      lastName: ['', [Validators.required, Validators.minLength(2)]],
+      email: ['', [Validators.required, Validators.email]],
+      phone: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
+      department: ['', Validators.required],
+      position: ['', Validators.required],
+      joinDate: ['', Validators.required]
+    });
   }
 
   // Load all employees and supervisors
@@ -52,23 +64,28 @@ export class EmployeesComponent implements OnInit {
         }));
         this.supervisors = this.employees;
         this.employeeService.getEmployeeRoles().subscribe((response) => {
-          this.employeeRoles = response.map((role: any) => ({
-            employeeRoleId: role.employeeRoleId,
-            employeeId: role.employeeId,
-            roleDetail: role.roleDetail.filter((r: any) => r.active).map((r: any) => ({
-              roleId: r.roleId,
-              roleName: r.roleName,
-              roleDescription: r.roleDescription,
-              active: r.active,
-              createdDate: r.createdDate,
-              createdBy: r.createdBy,
-              updatedDate: r.updatedDate,
-              updatedBy: r.updatedBy
-            })),
-            createdDate: role.createdDate,
-            createdBy: role.createdBy,
-          }));
-          
+          this.employeeRoles = response.map((role: any) => {
+            const roleDetails = Array.isArray(role.roleDetail) 
+              ? role.roleDetail.filter((r: any) => r.active).map((r: any) => ({
+                  roleId: r.roleId,
+                  roleName: r.roleName,
+                  roleDescription: r.roleDescription,
+                  active: r.active,
+                  createdDate: r.createdDate,
+                  createdBy: r.createdBy,
+                  updatedDate: r.updatedDate,
+                  updatedBy: r.updatedBy
+                }))
+              : role.roleDetail ? [role.roleDetail] : [];
+
+            return {
+              employeeRoleId: role.employeeRoleId,
+              employeeId: role.employeeId,
+              roleDetail: roleDetails,
+              createdDate: role.createdDate,
+              createdBy: role.createdBy,
+            };
+          });
         });
         this.loadingService.hide();
       },
@@ -82,20 +99,7 @@ export class EmployeesComponent implements OnInit {
 
   // Open modal for creating or editing employee
   openModal(employee?: Employee) {
-    this.selectedEmployee = employee ? { ...employee } : { 
-      EmployeeId: 0, 
-      EmployeeNumber: 0, 
-      EmployeeEmail: '', 
-      FirstName: '', 
-      LastName: '', 
-      Active: true,
-      EmployeeRoles: [],
-      SupervisorId: 0, 
-      CreatedDate: new Date(), 
-      CreatedBy: '', 
-      UpdatedDate: new Date(), 
-      UpdatedBy: '' 
-    };
+    this.selectedEmployee = employee || null;
     this.isModalOpen = true;
   }
 
@@ -108,36 +112,42 @@ export class EmployeesComponent implements OnInit {
   // Save or update employee
   saveEmployee(employee: Employee) {
     this.loadingService.show();
+
     if (employee.EmployeeId) {
       // Update existing employee
-      this.employeeService.updateEmployee(employee).subscribe(
-        (response) => {
-          this.loadingService.hide();
-          this.closeModal();
+      this.employeeService.updateEmployee(employee).subscribe({
+        next: (updatedEmployee) => {
+          // Update the employee in the list
+          const index = this.employees.findIndex(e => e.EmployeeId === updatedEmployee.EmployeeId);
+          if (index !== -1) {
+            this.employees[index] = updatedEmployee;
+          }
+          
           this.toastr.success('Employee updated successfully');
-          this.loadEmployees();
-        }, 
-        error => {
-          this.loadingService.hide();
-          this.toastr.error('Error updating employee');
-          console.error('Error updating employee:', error);
-        }
-      );
-    } else {
-      // Add new employee
-      this.employeeService.addEmployee(employee).subscribe(
-        (response) => {
-          this.loadingService.hide();
           this.closeModal();
-          this.toastr.success('Employee added successfully');
-          this.loadEmployees();
-        }, 
-        error => {
           this.loadingService.hide();
-          this.toastr.error('Error adding employee');
-          console.error('Error adding employee:', error);
+        },
+        error: (error) => {
+          this.toastr.error('Error updating employee');
+          this.loadingService.hide();
+          console.error('Update employee error:', error);
         }
-      );
+      });
+    } else {
+      // Create new employee
+      this.employeeService.addEmployee(employee).subscribe({
+        next: (newEmployee) => {
+          this.employees.push(newEmployee);
+          this.toastr.success('Employee created successfully');
+          this.closeModal();
+          this.loadingService.hide();
+        },
+        error: (error) => {
+          this.toastr.error('Error creating employee');
+          this.loadingService.hide();
+          console.error('Create employee error:', error);
+        }
+      });
     }
   }
 
@@ -156,5 +166,10 @@ export class EmployeesComponent implements OnInit {
         this.toastr.error('Error deleting employee');
       });
     }
+  }
+
+  // Validation check method
+  get formControls() {
+    return this.employeeForm.controls;
   }
 }

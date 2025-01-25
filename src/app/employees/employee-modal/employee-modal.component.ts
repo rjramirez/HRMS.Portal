@@ -70,7 +70,7 @@ export class EmployeeModalComponent implements OnInit {
         firstName: this.employee.FirstName,
         lastName: this.employee.LastName,
         email: this.employee.EmployeeEmail,
-        employeeNumber: this.employee.EmployeeNumber,
+        employeeNumber: this.employee.EmployeeNumber, // Explicitly set EmployeeNumber
         roles: this.employee.EmployeeRoles
       });
 
@@ -83,6 +83,8 @@ export class EmployeeModalComponent implements OnInit {
         }
       }
     }
+
+    console.log('Initial employee data:', this.employee);
   }
 
   // Getter for easy access to form controls
@@ -191,7 +193,8 @@ export class EmployeeModalComponent implements OnInit {
     // Prepare employee data from form
     const employeeData: Employee = {
       EmployeeId: this.employee?.EmployeeId || 0,
-      EmployeeNumber: 0,
+      // Preserve existing EmployeeNumber or use 0 for new employees
+      EmployeeNumber: this.employee?.EmployeeNumber || 0,
       FirstName: this.formControls['firstName'].value,
       LastName: this.formControls['lastName'].value,
       EmployeeEmail: this.formControls['email'].value,
@@ -208,6 +211,8 @@ export class EmployeeModalComponent implements OnInit {
       UpdatedBy: 'user',
       UpdatedDate: new Date()
     };
+
+    console.log('Saving employee with data:', employeeData);
 
     // Emit save event with employee data
     this.save.emit(employeeData);

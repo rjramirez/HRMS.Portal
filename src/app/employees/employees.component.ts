@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EmployeeService } from './employee.service';
 import { Employee, RoleDetail } from './employee.model';
 import { EmployeeModalComponent } from './employee-modal/employee-modal.component';
@@ -10,12 +10,26 @@ import { LoadingService } from '../core/services/loading.service';
 @Component({
   selector: 'app-employees',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, EmployeeModalComponent],
+  imports: [CommonModule, FormsModule, EmployeeModalComponent],
   templateUrl: './employees.component.html',
   styleUrls: ['./employees.component.scss']
 })
 export class EmployeesComponent implements OnInit {
+  // Original full list of employees
+  allEmployees: Employee[] = [];
+  
+  // Filtered and paginated employees to display
   employees: Employee[] = [];
+  
+  // Pagination properties
+  currentPage = 1;
+  itemsPerPage = 10;
+  pageSizes = [10, 20, 50, 100];
+  
+  // Search property
+  searchTerm = '';
+
+  // Other existing properties
   supervisors: Employee[] = [];
   roles: RoleDetail[] = [];
   selectedEmployee: Employee | null = null;
@@ -43,12 +57,11 @@ export class EmployeesComponent implements OnInit {
     });
   }
 
-  // Load all employees and supervisors
   loadEmployees() {
     this.loadingService.show();
     this.employeeService.getEmployees().subscribe({
       next: (response) => {
-        this.employees = response.map((emp: any) => ({
+        this.allEmployees = response.map((emp: any) => ({
           EmployeeId: emp.employeeId,
           EmployeeNumber: emp.employeeNumber,
           EmployeeEmail: emp.employeeEmail,
@@ -62,7 +75,8 @@ export class EmployeesComponent implements OnInit {
           UpdatedDate: emp.updatedDate,
           UpdatedBy: emp.updatedBy,
         }));
-        this.supervisors = this.employees;
+        this.applySearchAndPagination();
+        this.supervisors = this.allEmployees;
         this.employeeService.getRoles().subscribe((response) => {
           this.roles = response.map((role: any) => ({
             roleId: role.roleId,
@@ -71,6 +85,7 @@ export class EmployeesComponent implements OnInit {
             active: role.active
           }));
         });
+        console.log('All employees:', this.allEmployees);
         this.loadingService.hide();
       },
       error: (error) => {
@@ -81,39 +96,112 @@ export class EmployeesComponent implements OnInit {
     });
   }
 
-  // Open modal for creating or editing employee
+  // Search and filter method
+  applySearchAndPagination() {
+    // Filter employees based on search term
+    let filteredEmployees = this.allEmployees.filter(emp => 
+      emp.FirstName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+      emp.LastName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+      emp.EmployeeEmail.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+      emp.EmployeeNumber.toString().includes(this.searchTerm)
+    );
+
+    // Calculate total pages
+    const totalPages = Math.ceil(filteredEmployees.length / this.itemsPerPage);
+
+    // Ensure current page is within bounds
+    this.currentPage = Math.min(this.currentPage, totalPages);
+
+    // Slice employees for current page
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    this.employees = filteredEmployees.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  // Pagination methods
+  changePageSize(size: number) {
+    this.itemsPerPage = size;
+    this.currentPage = 1;
+    this.applySearchAndPagination();
+  }
+
+  nextPage() {
+    const totalPages = Math.ceil(this.allEmployees.length / this.itemsPerPage);
+    if (this.currentPage < totalPages) {
+      this.currentPage++;
+      this.applySearchAndPagination();
+    }
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.applySearchAndPagination();
+    }
+  }
+
+  // Search method
+  onSearch() {
+    this.currentPage = 1;
+    this.applySearchAndPagination();
+  }
+
+  // Existing methods remain the same
   openModal(employee?: Employee) {
-    this.selectedEmployee = employee || null;
+    if (employee) {
+      // Edit operation: create a deep copy of the existing employee to avoid direct mutation
+      this.selectedEmployee = JSON.parse(JSON.stringify(employee));
+      console.log("Editing existing employee: ", this.selectedEmployee);
+    } else {
+      // Add operation: create a new empty employee object
+      this.selectedEmployee = {
+        EmployeeId: 0,
+        EmployeeNumber: null!, // Use null or undefined to indicate a new employee
+        FirstName: '',
+        LastName: '',
+        EmployeeEmail: '',
+        SupervisorId: 0,
+        EmployeeRoles: [],
+        Active: true,
+        CreatedBy: '',
+        CreatedDate: new Date(),
+        UpdatedBy: '',
+        UpdatedDate: new Date()
+      };
+      console.log("Adding new employee: ", this.selectedEmployee);
+    }
     this.isModalOpen = true;
   }
 
-  // Close the employee modal
   closeModal() {
     this.isModalOpen = false;
     this.selectedEmployee = null;
   }
 
-  // Save or update employee
   saveEmployee(employee: Employee) {
     this.loadingService.show();
 
-    if (employee.EmployeeId) {
+    // Explicitly check if this is an edit or add operation
+    const isEditOperation = !!employee.EmployeeId && employee.EmployeeNumber !== null;
+
+    if (isEditOperation) {
       // Update existing employee
       this.employeeService.updateEmployee(employee).subscribe({
         next: (updatedEmployee) => {
-          // Update the employee in the list
-          const index = this.employees.findIndex(e => e.EmployeeId === updatedEmployee.EmployeeId);
-          if (index !== -1) {
-            this.employees[index] = updatedEmployee;
-          }
-          
-          this.toastr.success('Employee updated successfully');
-          this.closeModal();
+          // Ensure loading is hidden and toast is shown before any potential navigation
           this.loadingService.hide();
+          this.toastr.success('Employee updated successfully');
+
+          // Update the employee in the list
+          const index = this.allEmployees.findIndex(e => e.EmployeeId === updatedEmployee.EmployeeId);
+          if (index !== -1) {
+            this.allEmployees[index] = updatedEmployee;
+          }
+          this.applySearchAndPagination();
+          this.closeModal();
         },
         error: (error) => {
-          this.toastr.error('Error updating employee');
           this.loadingService.hide();
+          this.toastr.error('Error updating employee');
           console.error('Update employee error:', error);
         }
       });
@@ -121,30 +209,32 @@ export class EmployeesComponent implements OnInit {
       // Create new employee
       this.employeeService.addEmployee(employee).subscribe({
         next: (newEmployee) => {
-          this.employees.push(newEmployee);
-          this.toastr.success('Employee created successfully');
-          this.closeModal();
+          // Ensure loading is hidden and toast is shown before any potential navigation
           this.loadingService.hide();
+          this.toastr.success('Employee created successfully');
+
+          this.allEmployees.push(newEmployee);
+          this.applySearchAndPagination();
+          this.closeModal();
         },
         error: (error) => {
-          this.toastr.error('Error creating employee');
           this.loadingService.hide();
+          this.toastr.error('Error creating employee');
           console.error('Create employee error:', error);
         }
       });
     }
   }
 
-  // Edit an existing employee
   editEmployee(employee: Employee) {
     this.openModal(employee);
   }
 
-  // Delete an employee
   deleteEmployee(employeeNumber: number) {
     if (confirm('Are you sure you want to delete this employee?')) {
       this.employeeService.deleteEmployee(employeeNumber).subscribe(() => {
-        this.loadEmployees();
+        this.allEmployees = this.allEmployees.filter(emp => emp.EmployeeNumber !== employeeNumber);
+        this.applySearchAndPagination();
         this.toastr.success('Employee deleted successfully');
       }, error => {
         this.toastr.error('Error deleting employee');
@@ -155,5 +245,10 @@ export class EmployeesComponent implements OnInit {
   // Validation check method
   get formControls() {
     return this.employeeForm.controls;
+  }
+
+  // Add this getter method
+  get Math() {
+    return Math;
   }
 }

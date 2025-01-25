@@ -27,5 +27,6 @@ export interface Employee {
     FirstName: string;
     LastName: string;
     SupervisorId: number;
+    EmployeeRoles: RoleDetail[];
     Active: boolean;
   }

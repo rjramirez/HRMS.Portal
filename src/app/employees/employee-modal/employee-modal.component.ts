@@ -66,13 +66,19 @@ export class EmployeeModalComponent implements OnInit {
 
     // Populate form if editing existing employee
     if (this.employee) {
+      // Map employee roles to available roles
+      const employeeRoles = this.employee.EmployeeRoles.filter(role => role !== undefined);
+
       this.employeeForm.patchValue({
         firstName: this.employee.FirstName,
         lastName: this.employee.LastName,
         email: this.employee.EmployeeEmail,
-        employeeNumber: this.employee.EmployeeNumber, // Explicitly set EmployeeNumber
-        roles: this.employee.EmployeeRoles
+        employeeNumber: this.employee.EmployeeNumber,
+        roles: employeeRoles
       });
+
+      console.log('Employee Roles:', this.employee.EmployeeRoles);
+      console.log('Mapped Roles:', employeeRoles);
 
       // Set the supervisor search based on the employee's SupervisorId
       if (this.employee.SupervisorId) {
@@ -85,6 +91,7 @@ export class EmployeeModalComponent implements OnInit {
     }
 
     console.log('Initial employee data:', this.employee);
+    console.log('Available roles:', this.availableRoles);
   }
 
   // Getter for easy access to form controls

@@ -23,7 +23,6 @@ export class AuthService implements OnDestroy {
         this.router.navigate(['/auth/login']);
         this.clearInactivityTimer();
       } else if (event === 'SIGNED_IN') {
-        this.router.navigate(['/dashboard']);
         this.resetInactivityTimer();
       }
     });

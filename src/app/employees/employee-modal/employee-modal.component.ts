@@ -171,11 +171,11 @@ export class EmployeeModalComponent implements OnInit, OnChanges {
       // Construct employee object
       const employee: Employee = {
         EmployeeId: this.employee?.EmployeeId || 0,
-        EmployeeNumber: formValue.employeeNumber,
+        EmployeeNumber: formValue.employeeNumber || 0,
         FirstName: formValue.firstName,
         LastName: formValue.lastName,
         EmployeeEmail: formValue.email,
-        SupervisorId: formValue.supervisor ? formValue.supervisor : '',
+        SupervisorId: formValue.supervisor ? formValue.supervisor : 0,
         EmployeeRoles: employeeRoles,
         Active: true,
         CreatedDate: new Date(),

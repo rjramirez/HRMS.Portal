@@ -7,11 +7,35 @@ import { ToastrService } from 'ngx-toastr';
 export class NotificationService {
   constructor(private toastr: ToastrService) {}
 
-  showSuccess(message: string) {
-    this.toastr.success(message);
+  success(message: string, title: string = 'Success', options: any = {}) {
+    const defaultOptions = { 
+      positionClass: 'toast-top-right',
+      timeOut: 3000 
+    };
+    this.toastr.success(message, title, { ...defaultOptions, ...options });
   }
 
-  showError(message: string) {
-    this.toastr.error(message);
+  error(message: string, title: string = 'Error', options: any = {}) {
+    const defaultOptions = { 
+      positionClass: 'toast-top-right',
+      timeOut: 3000 
+    };
+    this.toastr.error(message, title, { ...defaultOptions, ...options });
   }
-} 
+
+  warning(message: string, title: string = 'Warning', options: any = {}) {
+    const defaultOptions = { 
+      positionClass: 'toast-top-right',
+      timeOut: 3000 
+    };
+    this.toastr.warning(message, title, { ...defaultOptions, ...options });
+  }
+
+  info(message: string, title: string = 'Information', options: any = {}) {
+    const defaultOptions = { 
+      positionClass: 'toast-top-right',
+      timeOut: 3000 
+    };
+    this.toastr.info(message, title, { ...defaultOptions, ...options });
+  }
+}

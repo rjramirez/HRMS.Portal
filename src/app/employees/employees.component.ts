@@ -1,35 +1,31 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EmployeeService } from './employee.service';
 import { Employee, roleDetail } from './employee.model';
 import { EmployeeModalComponent } from './employee-modal/employee-modal.component';
-import { ToastrService } from 'ngx-toastr';
+import { NotificationService } from '../services/notification.service';
 import { LoadingService } from '../core/services/loading.service';
 
 @Component({
   selector: 'app-employees',
   standalone: true,
-  imports: [CommonModule, FormsModule, EmployeeModalComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ReactiveFormsModule, 
+    EmployeeModalComponent
+  ],
   templateUrl: './employees.component.html',
   styleUrls: ['./employees.component.scss']
 })
 export class EmployeesComponent implements OnInit {
-  // Original full list of employees
   allEmployees: Employee[] = [];
-  
-  // Filtered and paginated employees to display
   employees: Employee[] = [];
-  
-  // Pagination properties
   currentPage = 1;
   itemsPerPage = 10;
   pageSizes = [10, 20, 50, 100];
-  
-  // Search property
   searchTerm = '';
-
-  // Other existing properties
   supervisors: Employee[] = [];
   roles: roleDetail[] = [];
   selectedEmployee: Employee | null = null;
@@ -38,9 +34,9 @@ export class EmployeesComponent implements OnInit {
 
   constructor(
     private employeeService: EmployeeService, 
-    private toastr: ToastrService,
-    private loadingService: LoadingService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private notificationService: NotificationService,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit() {
@@ -120,34 +116,41 @@ export class EmployeesComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading employees:', error);
-        this.toastr.error('Failed to load employees');
+        this.notificationService.error('Failed to load employees');
         this.loadingService.hide();
       }
     });
   }
 
-  // Search and filter method
   applySearchAndPagination() {
-    // Filter employees based on search term
     let filteredEmployees = this.allEmployees.filter(emp => 
-      emp.FirstName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-      emp.LastName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-      emp.EmployeeEmail.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-      emp.EmployeeNumber.toString().includes(this.searchTerm)
+      this.matchesSearchTerm(emp)
     );
 
-    // Calculate total pages
     const totalPages = Math.ceil(filteredEmployees.length / this.itemsPerPage);
-
-    // Ensure current page is within bounds
     this.currentPage = Math.min(this.currentPage, totalPages);
 
-    // Slice employees for current page
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     this.employees = filteredEmployees.slice(startIndex, startIndex + this.itemsPerPage);
   }
 
-  // Pagination methods
+  matchesSearchTerm(employee: Employee): boolean {
+    if (!this.searchTerm) return true;
+    
+    const searchLower = this.searchTerm.toLowerCase();
+    return (
+      employee.FirstName.toLowerCase().includes(searchLower) ||
+      employee.LastName.toLowerCase().includes(searchLower) ||
+      employee.EmployeeEmail.toLowerCase().includes(searchLower) ||
+      employee.EmployeeNumber.toString().includes(searchLower)
+    );
+  }
+
+  onSearch() {
+    this.currentPage = 1;
+    this.applySearchAndPagination();
+  }
+
   changePageSize(size: number) {
     this.itemsPerPage = size;
     this.currentPage = 1;
@@ -169,16 +172,13 @@ export class EmployeesComponent implements OnInit {
     }
   }
 
-  // Search method
-  onSearch() {
-    this.currentPage = 1;
-    this.applySearchAndPagination();
-  }
-
-  // Existing methods remain the same
   openModal(employee: Employee | null = null) {
-    
-    // Ensure roles and supervisors are populated
+    this.notificationService.success(
+      'TESTING', 
+      'Success', 
+      { timeOut: 3000 }
+    );
+
     if (!this.roles || this.roles.length === 0) {
       this.fetchRoles();
     }
@@ -189,11 +189,9 @@ export class EmployeesComponent implements OnInit {
     this.selectedEmployee = employee;
     this.isModalOpen = true;
     
-    // Reset the form when opening the modal
     if (employee) {
       this.supervisors = this.supervisors.filter(s => s.EmployeeNumber.toString() !== employee.EmployeeNumber.toString());
 
-      // Populate form for edit
       this.employeeForm = this.formBuilder.group({
         firstName: [employee.FirstName, [Validators.required, Validators.minLength(2)]],
         lastName: [employee.LastName, [Validators.required, Validators.minLength(2)]],
@@ -203,7 +201,6 @@ export class EmployeesComponent implements OnInit {
         roles: [employee.EmployeeRoles || []]
       });
     } else {
-      // Reset form for new employee
       this.employeeForm = this.formBuilder.group({
         firstName: ['', [Validators.required, Validators.minLength(2)]],
         lastName: ['', [Validators.required, Validators.minLength(2)]],
@@ -215,7 +212,6 @@ export class EmployeesComponent implements OnInit {
     }
   }
 
-  // Add methods to fetch roles and supervisors if not already populated
   fetchRoles() {
     this.employeeService.getRoles().subscribe({
       next: (roles) => {
@@ -231,7 +227,6 @@ export class EmployeesComponent implements OnInit {
     this.employeeService.getEmployees().subscribe({
       next: (supervisors) => {
         this.supervisors = supervisors;
-        console.log('Supervisors fetched:', this.supervisors);
       },
       error: (err) => {
         console.error('Error fetching supervisors:', err);
@@ -242,56 +237,41 @@ export class EmployeesComponent implements OnInit {
   closeModal() {
     this.isModalOpen = false;
     this.selectedEmployee = null;
-    this.employeeForm.reset(); // Reset form when closing
+    this.employeeForm.reset();
   }
 
   saveEmployee(employee: Employee) {
     this.loadingService.show();
-
-    // Explicitly check if this is an edit or add operation
-    const isEditOperation = !!employee.EmployeeId && employee.EmployeeNumber !== null;
-
-    if (isEditOperation) {
-      // Update existing employee
-      this.employeeService.updateEmployee(employee).subscribe({
-        next: (updatedEmployee) => {
-          // Ensure loading is hidden and toast is shown before any potential navigation
-          this.loadingService.hide();
-          this.toastr.success('Employee updated successfully');
-
-          // Update the employee in the list
-          const index = this.allEmployees.findIndex(e => e.EmployeeId === updatedEmployee.EmployeeId);
-          if (index !== -1) {
-            this.allEmployees[index] = updatedEmployee;
-          }
-          this.applySearchAndPagination();
-          this.closeModal();
-        },
-        error: (error) => {
-          this.loadingService.hide();
-          this.toastr.error('Error updating employee');
-          console.error('Update employee error:', error);
-        }
-      });
-    } else {
-      // Create new employee
-      this.employeeService.addEmployee(employee).subscribe({
-        next: (newEmployee) => {
-          // Ensure loading is hidden and toast is shown before any potential navigation
-          this.loadingService.hide();
-          this.toastr.success('Employee created successfully');
-
-          this.allEmployees.push(newEmployee);
-          this.applySearchAndPagination();
-          this.closeModal();
-        },
-        error: (error) => {
-          this.loadingService.hide();
-          this.toastr.error('Error creating employee');
-          console.error('Create employee error:', error);
-        }
-      });
-    }
+    
+    const isNewEmployee = !employee.EmployeeId || employee.EmployeeId === 0;
+    
+    const saveObservable = isNewEmployee 
+      ? this.employeeService.addEmployee(employee)
+      : this.employeeService.updateEmployee(employee);
+    
+    saveObservable.subscribe({
+      next: () => {
+        this.notificationService.success(
+          isNewEmployee ? 'Employee created successfully' : 'Employee updated successfully', 
+          'Success', 
+          { timeOut: 3000 }
+        );
+        
+        this.closeModal();
+        this.loadEmployees();
+      },
+      error: (error) => {
+        this.notificationService.error(
+          isNewEmployee ? 'Failed to create employee' : 'Failed to update employee', 
+          'Error', 
+          { timeOut: 3000 }
+        );
+        console.error('Save employee error:', error);
+      },
+      complete: () => {
+        this.loadingService.hide();
+      }
+    });
   }
 
   editEmployee(employee: Employee) {
@@ -303,19 +283,17 @@ export class EmployeesComponent implements OnInit {
       this.employeeService.deleteEmployee(employeeNumber).subscribe(() => {
         this.allEmployees = this.allEmployees.filter(emp => emp.EmployeeNumber !== employeeNumber);
         this.applySearchAndPagination();
-        this.toastr.success('Employee deleted successfully');
+        this.notificationService.success('Employee deleted successfully');
       }, error => {
-        this.toastr.error('Error deleting employee');
+        this.notificationService.error('Error deleting employee');
       });
     }
   }
 
-  // Validation check method
   get formControls() {
     return this.employeeForm.controls;
   }
 
-  // Add this getter method
   get Math() {
     return Math;
   }

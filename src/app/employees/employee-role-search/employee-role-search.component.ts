@@ -68,7 +68,6 @@ export class EmployeeRoleSearchComponent implements OnInit, OnChanges {
       };
     });
 
-    console.log('Combined roles:', combinedRoles);
     this.rolesSubject.next(combinedRoles);
   }
 

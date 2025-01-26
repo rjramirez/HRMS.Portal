@@ -1,7 +1,5 @@
 # SS HRMS Portal
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/rjramirez/HRMS.Portal/build.yml?branch=main&style=for-the-badge)](https://github.com/rjramirez/HRMS.Portal/actions)
-
 ## Project Overview
 SS HRMS Demo is a comprehensive Human Resource Management System designed to streamline employee management processes.
 

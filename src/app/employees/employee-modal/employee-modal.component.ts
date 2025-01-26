@@ -1,236 +1,217 @@
-import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
-import { Employee, RoleDetail } from '../employee.model';
+import { Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Employee, EmployeeRole, roleDetail } from '../employee.model';
 import { EmployeeService } from '../employee.service';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { EmployeeRoleSearchComponent } from '../employee-role-search/employee-role-search.component';
 
 @Component({
   selector: 'app-employee-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, EmployeeRoleSearchComponent],
   templateUrl: './employee-modal.component.html',
   styleUrls: ['./employee-modal.component.scss']
 })
-export class EmployeeModalComponent implements OnInit {
+export class EmployeeModalComponent implements OnInit, OnChanges {
   @Input() employee: Employee | null = null;
   @Input() supervisors!: Employee[];
-  @Input() roles!: RoleDetail[];
+  @Input() roles!: roleDetail[];
   @Output() save = new EventEmitter<Employee>();
   @Output() close = new EventEmitter<void>();
 
   employeeForm: FormGroup;
 
-  filteredRoles: RoleDetail[] = [];
-  roleSearchControl = new FormControl('');
-  availableRoles: RoleDetail[] = [];
-  supervisorSearchControl = new FormControl('');
-  filteredSupervisors: Employee[] = [];
-  showRoleDropdown = false;
-  showSupervisorDropdown = false;
+  availableRoles: roleDetail[] = [];
+  
+  // Define properties for ngModel
+  selectedSupervisor: Employee | null = null; // For the selected supervisor
+  selectedEmployeeRoles: roleDetail[] = []; // For the selected roles
+
+
+  // Define the showSupervisorDropdown property
+  showSupervisorDropdown: boolean = false; // Initialize as false
 
   constructor(
-    private employeeService: EmployeeService,
     private fb: FormBuilder
   ) {
     this.employeeForm = this.fb.group({
-      firstName: ['', [
-        Validators.required, 
-        Validators.minLength(2),
-        Validators.maxLength(50)
-      ]],
-      lastName: ['', [
-        Validators.required, 
-        Validators.minLength(2),
-        Validators.maxLength(50)
-      ]],
-      email: ['', [
-        Validators.required, 
-        Validators.email
-      ]],
+      firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+      lastName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+      email: ['', [Validators.required, Validators.email]],
       employeeNumber: [''],
-      supervisor: [''],
+      supervisor: [null],
       roles: [[]],
-      roleSearchControl: this.roleSearchControl,
-      supervisorSearchControl: this.supervisorSearchControl
+      roleSearch: ['']
     });
   }
 
   ngOnInit() {
-    // Fetch employee roles if not provided
-    if (!this.roles || this.roles.length === 0) {
-      this.fetchEmployeeRoles();
-    } else {
-      this.availableRoles = this.roles;
-      this.filteredRoles = this.availableRoles;
-    }
+    // Fetch roles from the service
+    this.fetchEmployeeRoles();
 
-    // Populate form if editing existing employee
+    // Populate form with employee data if editing
     if (this.employee) {
-      // Map employee roles to available roles
-      const employeeRoles = this.employee.EmployeeRoles.filter(role => role !== undefined);
+      // Find the supervisor by EmployeeNumber
+      const supervisor = this.supervisors?.find(s => s.EmployeeNumber.toString() === this.employee?.SupervisorId.toString());
 
       this.employeeForm.patchValue({
         firstName: this.employee.FirstName,
         lastName: this.employee.LastName,
         email: this.employee.EmployeeEmail,
         employeeNumber: this.employee.EmployeeNumber,
-        roles: employeeRoles
+        supervisor: supervisor ? supervisor.EmployeeNumber : null,
+        roles: this.employee.EmployeeRoles || []
       });
 
-      console.log('Employee Roles:', this.employee.EmployeeRoles);
-      console.log('Mapped Roles:', employeeRoles);
+      // Set selected supervisor and roles
+      this.selectedSupervisor = supervisor || null;
+      this.selectedEmployeeRoles = this.employee.EmployeeRoles.map(employeeRole => ({
+        roleId: employeeRole.roleDetail.roleId,
+        roleName: employeeRole.roleDetail.roleName,
+        roleDescription: employeeRole.roleDetail.roleDescription,
+        active: employeeRole.roleDetail.active,
+        createdDate: employeeRole.roleDetail.createdDate || new Date().toISOString()
+      })) || [];
 
-      // Set the supervisor search based on the employee's SupervisorId
-      if (this.employee.SupervisorId) {
-        const supervisor = this.supervisors.find(s => s.EmployeeNumber === this.employee!.SupervisorId);
-        if (supervisor) {
-          this.supervisorSearchControl.setValue(`${supervisor.FirstName} ${supervisor.LastName}`);
-          this.employeeForm.get('supervisor')?.setValue(supervisor);
-        }
-      }
+      // Ensure available roles are updated after setting selected roles
+      this.fetchEmployeeRoles();
+    } else {
+      // Reset form for new employee
+      this.employeeForm.reset();
+      this.selectedSupervisor = null;
+      this.selectedEmployeeRoles = [];
     }
-
-    console.log('Initial employee data:', this.employee);
-    console.log('Available roles:', this.availableRoles);
   }
 
-  // Getter for easy access to form controls
-  get formControls() {
-    return this.employeeForm.controls;
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['employee'] && this.employee) {
+      // Find the supervisor by EmployeeNumber
+      const supervisor = this.supervisors?.find(s => s.EmployeeNumber.toString() === this.employee?.SupervisorId.toString());
+
+      // Populate form with existing employee data
+      this.employeeForm.patchValue({
+        firstName: this.employee.FirstName,
+        lastName: this.employee.LastName,
+        email: this.employee.EmployeeEmail,
+        employeeNumber: this.employee.EmployeeNumber,
+        supervisor: supervisor ? supervisor.EmployeeNumber : null,
+        roles: this.employee.EmployeeRoles
+      });
+
+      // Set selected employee roles
+      this.selectedEmployeeRoles = this.employee.EmployeeRoles.map(employeeRole => ({
+        roleId: employeeRole.roleDetail.roleId,
+        roleName: employeeRole.roleDetail.roleName,
+        roleDescription: employeeRole.roleDetail.roleDescription,
+        active: employeeRole.roleDetail.active,
+        createdDate: employeeRole.roleDetail.createdDate || new Date().toISOString()
+      })) || [];
+
+      // Set selected supervisor
+      this.selectedSupervisor = supervisor || null;
+
+      // Ensure available roles are updated after setting selected roles
+      this.fetchEmployeeRoles();
+    }
   }
 
-  // Fetch employee roles from service
   fetchEmployeeRoles() {
-    this.employeeService.getRoles().subscribe({
-      next: (roles) => {
-        // Filter active roles
-        this.availableRoles = roles.filter(role => role.active);
-        this.filteredRoles = this.availableRoles;
-      },
-      error: (error) => {
-        console.error('Error fetching employee roles:', error);
-      }
-    });
-  }
-
-  filterRoles() {
-    const searchTerm = this.roleSearchControl.value?.toLowerCase() ?? '';
-    this.filteredRoles = this.availableRoles.filter(role => 
-      role.roleName.toLowerCase().includes(searchTerm)
+    // Fetch available roles, filtering out already selected roles
+    this.availableRoles = (this.roles || []).filter(
+      role => !this.selectedEmployeeRoles.some(selectedRole => selectedRole.roleId === role.roleId)
     );
-    this.showRoleDropdown = this.filteredRoles.length > 0;
   }
 
-  selectRole(role: RoleDetail) {
-    const currentRoles = this.employeeForm.get('roles')?.value || [];
-    
-    // Check if role already exists to prevent duplicates
-    const roleExists = currentRoles.some((r: RoleDetail) => r.roleId === role.roleId);
-    
-    if (!roleExists) {
-      const updatedRoles = [...currentRoles, role];
-      this.employeeForm.get('roles')?.setValue(updatedRoles);
+  // Method to add a role to selected roles
+  addEmployeeRole(role: roleDetail) {
+    // Check if role is already selected
+    if (!this.selectedEmployeeRoles.some(r => r.roleId === role.roleId)) {
+      this.selectedEmployeeRoles.push({
+        roleId: role.roleId,
+        roleName: role.roleName,
+        roleDescription: role.roleDescription,
+        active: role.active ?? true,
+        createdDate: role.createdDate || new Date().toISOString()
+      });
     }
+  }
+
+  // Remove a role from selected roles
+  removeEmployeeRole(role: roleDetail) {
+    // Remove from selected roles
+    this.selectedEmployeeRoles = this.selectedEmployeeRoles.filter(r => r.roleId !== role.roleId);
     
-    this.roleSearchControl.setValue(''); 
-    this.filteredRoles = [...this.availableRoles];
-    this.showRoleDropdown = false; 
-  }
-
-  removeRole(roleToRemove: RoleDetail) {
-    const currentRoles = this.employeeForm.get('roles')?.value || [];
-    const updatedRoles = currentRoles.filter((role: RoleDetail) => role.roleId !== roleToRemove.roleId);
-    this.employeeForm.get('roles')?.setValue(updatedRoles);
-  }
-
-  filterSupervisors() {
-    const searchTerm = this.supervisorSearchControl.value?.toLowerCase();
-    this.filteredSupervisors = this.supervisors.filter(supervisor => 
-      supervisor.FirstName.toLowerCase().includes(searchTerm ?? '') || 
-      supervisor.LastName.toLowerCase().includes(searchTerm ?? '') || 
-      supervisor.EmployeeNumber.toString().includes(searchTerm ?? '')
-    );
-    this.showSupervisorDropdown = this.filteredSupervisors.length > 0;
-  }
-
-  selectSupervisor(supervisor: Employee) {
-    if (!this.employee) {
-      this.employee = {} as Employee;
+    // Restore the role to available roles if it's not already there
+    if (!this.availableRoles.some(r => r.roleId === role.roleId)) {
+      this.availableRoles.push(role);
     }
-    console.log("Selected supervisor: ",supervisor);
-    this.employee.SupervisorId = supervisor.EmployeeNumber;
-    this.supervisorSearchControl.setValue(`${supervisor.FirstName} ${supervisor.LastName}`);
-    this.employeeForm.get('supervisor')?.setValue(supervisor);
-    this.filteredSupervisors = this.supervisors;
-    this.showSupervisorDropdown = false;
-  }
-
-  onRoleBlur() {
-    setTimeout(() => {
-      this.showRoleDropdown = false;
-    }, 200);
-  }
-
-  onRoleFocus() {
-    this.showRoleDropdown = true;
-    this.filterRoles();
-  }
-
-  onSupervisorBlur() {
-    setTimeout(() => {
-      this.showSupervisorDropdown = false;
-    }, 200);
-  }
-
-  onSupervisorFocus() {
-    this.showSupervisorDropdown = true;
-    this.filterSupervisors();
   }
 
   onSave() {
-    if (this.employeeForm.invalid) {
+    if (this.employeeForm.valid) {
+      const formValue = this.employeeForm.value;
+
+      // Map selected roles to EmployeeRole format
+      const employeeRoles: EmployeeRole[] = this.selectedEmployeeRoles.map(role => ({
+        employeeRoleId: 0, 
+        employeeId: 0, 
+        roleDetail: {
+          roleId: role.roleId,
+          roleName: role.roleName,
+          roleDescription: role.roleDescription,
+          active: role.active ?? true,
+          createdDate: role.createdDate || new Date().toISOString()
+        },
+        active: role.active ?? true,
+        createdDate: new Date().toISOString(),
+        updatedDate: new Date().toISOString(),
+        updatedBy: 'user'
+      }));
+
+      // Construct employee object
+      const employee: Employee = {
+        EmployeeId: this.employee?.EmployeeId || 0,
+        EmployeeNumber: formValue.employeeNumber,
+        FirstName: formValue.firstName,
+        LastName: formValue.lastName,
+        EmployeeEmail: formValue.email,
+        SupervisorId: formValue.supervisor ? formValue.supervisor.EmployeeNumber : '',
+        EmployeeRoles: employeeRoles,
+        Active: true,
+        CreatedDate: new Date(),
+        CreatedBy: 'system',
+        UpdatedDate: new Date(),
+        UpdatedBy: 'system'
+      };
+
+      console.log("Updating employee: ", employee);
+      // Emit save event
+      this.save.emit(employee);
+    } else {
       // Mark all fields as touched to show validation errors
       Object.keys(this.employeeForm.controls).forEach(field => {
         const control = this.employeeForm.get(field);
-        control?.markAsTouched({ onlySelf: true });
+        control?.markAsTouched();
       });
-      return;
     }
-
-    // Prepare employee data from form
-    const employeeData: Employee = {
-      EmployeeId: this.employee?.EmployeeId || 0,
-      // Preserve existing EmployeeNumber or use 0 for new employees
-      EmployeeNumber: this.employee?.EmployeeNumber || 0,
-      FirstName: this.formControls['firstName'].value,
-      LastName: this.formControls['lastName'].value,
-      EmployeeEmail: this.formControls['email'].value,
-      SupervisorId: this.formControls['supervisor'].value?.EmployeeNumber || 0,
-      EmployeeRoles: this.formControls['roles'].value.map((role: RoleDetail) => ({
-        RoleDetail: {
-          RoleId: role.roleId,
-          RoleName: role.roleName
-        }
-      })) || [],
-      Active: true,
-      CreatedBy: 'user',
-      CreatedDate: new Date(),
-      UpdatedBy: 'user',
-      UpdatedDate: new Date()
-    };
-
-    console.log('Saving employee with data:', employeeData);
-
-    // Emit save event with employee data
-    this.save.emit(employeeData);
   }
 
   hasError(controlName: string, errorType: string): boolean {
     const control = this.employeeForm.get(controlName);
-    return control ? (control.hasError(errorType) && control.touched) : false;
+    return control ? (control.hasError(errorType) && (control.dirty || control.touched)) : false;
   }
 
   onClose() {
     this.close.emit();
+  }
+
+  onSupervisorFocus() {
+    this.showSupervisorDropdown = true; // Show the dropdown when the input is focused
+  }
+
+  onSupervisorBlur() {
+    setTimeout(() => {
+        this.showSupervisorDropdown = false; // Hide the dropdown when the input loses focus
+    }, 200); // Optional delay to allow for click events on dropdown items
   }
 }

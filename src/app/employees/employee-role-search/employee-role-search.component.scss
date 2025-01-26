@@ -1,0 +1,75 @@
+// Styles for employee role search component
+:host {
+  font-size: 0.7rem; // Further reduced font size
+  width: 300px; // Fixed, narrow width
+  
+  .role-search-container {
+    padding: 0.25rem; // Minimal padding
+  }
+
+  .search-input {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.3rem; // Extremely compact input
+    height: 1.5rem; // Reduced input height
+    line-height: 1.2;
+  }
+
+  .role-list {
+    max-height: 200px; // Reduced max height
+    overflow-y: auto;
+
+    .role-item {
+      padding: 0.15rem 0.3rem; // Ultra-compact list items
+      margin: 0.1rem 0;
+      font-size: 0.7rem;
+      line-height: 1.2;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+  }
+
+  .btn {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.3rem; // Tiny buttons
+    height: 1.5rem;
+    line-height: 1.2;
+  }
+
+  // Reduce checkbox size
+  .mat-checkbox {
+    font-size: 0.7rem;
+    
+    .mat-checkbox-layout {
+      line-height: 1.2;
+    }
+
+    .mat-checkbox-inner-container {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+.mat-form-field {
+  width: 100%;
+  font-size: 0.7rem;
+}
+
+.mat-autocomplete-panel {
+  max-height: 250px;
+  background-color: white !important;
+}
+
+.mat-option {
+  background-color: white !important;
+  
+  &.mat-selected {
+    background-color: #f0f0f0 !important;
+  }
+}
+
+// Additional specificity for Material Design dropdowns
+::ng-deep .mat-autocomplete-panel .mat-option {
+  background-color: white !important;
+}

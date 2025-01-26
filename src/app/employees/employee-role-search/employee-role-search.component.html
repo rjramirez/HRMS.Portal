@@ -1,0 +1,20 @@
+<mat-form-field appearance="outline" class="w-full">
+  <mat-label>Search Roles</mat-label>
+  <input matInput 
+         [formControl]="roleSearchControl"
+         [matAutocomplete]="auto"
+         placeholder="Search roles">
+  <mat-autocomplete #auto="matAutocomplete" 
+                    [displayWith]="displayRoleName"
+                    (optionSelected)="onRoleSelected($event.option.value)"
+                    multiple>
+    <mat-option *ngFor="let role of filteredRoles | async" [value]="role">
+      <mat-checkbox 
+        [checked]="role.isChecked"
+        (change)="onRoleSelected(role)"
+        (click)="$event.stopPropagation()">
+        {{ role.roleName }} ({{ role.roleDescription }})
+      </mat-checkbox>
+    </mat-option>
+  </mat-autocomplete>
+</mat-form-field>

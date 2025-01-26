@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Employee, RoleDetail } from './employee.model';
+import { Employee, roleDetail } from './employee.model';
 import { environment } from '../environments/environment.dev';
 
 @Injectable({
@@ -18,8 +18,8 @@ export class EmployeeService {
   }
 
   // Get All Roles
-  getRoles(): Observable<RoleDetail[]> {
-    return this.http.get<RoleDetail[]>(`${this.apiUrl}/GetRoles`);
+  getRoles(): Observable<roleDetail[]> {
+    return this.http.get<roleDetail[]>(`${this.apiUrl}/GetRoles`);
   }
 
   // Add a new Employee

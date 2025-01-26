@@ -53,3 +53,14 @@
     }
   }
 }
+
+:host {
+  .modal-dialog {
+    max-width: 80%; 
+    width: 90%; 
+  }
+
+  .modal-content {
+    width: 100%;
+  }
+}

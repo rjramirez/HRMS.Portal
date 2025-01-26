@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EmployeeService } from './employee.service';
-import { Employee, RoleDetail } from './employee.model';
+import { Employee, roleDetail } from './employee.model';
 import { EmployeeModalComponent } from './employee-modal/employee-modal.component';
 import { ToastrService } from 'ngx-toastr';
 import { LoadingService } from '../core/services/loading.service';
@@ -31,9 +31,9 @@ export class EmployeesComponent implements OnInit {
 
   // Other existing properties
   supervisors: Employee[] = [];
-  roles: RoleDetail[] = [];
+  roles: roleDetail[] = [];
   selectedEmployee: Employee | null = null;
-  isModalOpen = false;
+  isModalOpen: boolean = false;
   employeeForm!: FormGroup;
 
   constructor(
@@ -74,6 +74,37 @@ export class EmployeesComponent implements OnInit {
           CreatedBy: emp.createdBy,
           UpdatedDate: emp.updatedDate,
           UpdatedBy: emp.updatedBy,
+          Supervisor: emp.supervisor ? {
+            EmployeeId: emp.supervisor.employeeId || 0,
+            EmployeeNumber: emp.supervisor.employeeNumber || 0,
+            EmployeeEmail: emp.supervisor.employeeEmail || '',
+            FirstName: emp.supervisor.firstName || '',
+            LastName: emp.supervisor.lastName || '',
+            SupervisorId: emp.supervisor.supervisorId || 0,
+            EmployeeRoles: emp.supervisor.employeeRoles?.map((role: any) => ({
+              roleId: role.roleId || 0,
+              roleName: role.roleName || '',
+              roleDescription: role.roleDescription || '',
+              active: role.active || false
+            })) || [],
+            Active: emp.supervisor.active || false,
+            CreatedDate: emp.supervisor.createdDate || new Date(),
+            CreatedBy: emp.supervisor.createdBy || '',
+            UpdatedDate: emp.supervisor.updatedDate || new Date(),
+            UpdatedBy: emp.supervisor.updatedBy || ''
+          } : {
+            EmployeeId: 0,
+            EmployeeEmail: '',
+            FirstName: '',
+            LastName: '',
+            SupervisorId: emp.supervisorId || 0,
+            EmployeeRoles: [],
+            Active: false,
+            CreatedDate: new Date(),
+            CreatedBy: '',
+            UpdatedDate: new Date(),
+            UpdatedBy: ''
+          }
         }));
         this.applySearchAndPagination();
         this.supervisors = this.allEmployees;
@@ -85,7 +116,6 @@ export class EmployeesComponent implements OnInit {
             active: role.active
           }));
         });
-        console.log('All employees:', this.allEmployees);
         this.loadingService.hide();
       },
       error: (error) => {
@@ -146,35 +176,71 @@ export class EmployeesComponent implements OnInit {
   }
 
   // Existing methods remain the same
-  openModal(employee?: Employee) {
-    if (employee) {
-      // Edit operation: create a deep copy of the existing employee to avoid direct mutation
-      this.selectedEmployee = JSON.parse(JSON.stringify(employee));
-      console.log("Editing existing employee: ", this.selectedEmployee);
-    } else {
-      // Add operation: create a new empty employee object
-      this.selectedEmployee = {
-        EmployeeId: 0,
-        EmployeeNumber: null!, // Use null or undefined to indicate a new employee
-        FirstName: '',
-        LastName: '',
-        EmployeeEmail: '',
-        SupervisorId: 0,
-        EmployeeRoles: [],
-        Active: true,
-        CreatedBy: '',
-        CreatedDate: new Date(),
-        UpdatedBy: '',
-        UpdatedDate: new Date()
-      };
-      console.log("Adding new employee: ", this.selectedEmployee);
+  openModal(employee: Employee | null = null) {
+    
+    // Ensure roles and supervisors are populated
+    if (!this.roles || this.roles.length === 0) {
+      this.fetchRoles();
     }
+    if (!this.supervisors || this.supervisors.length === 0) {
+      this.fetchSupervisors();
+    }
+
+    this.selectedEmployee = employee;
     this.isModalOpen = true;
+    
+    // Reset the form when opening the modal
+    if (employee) {
+      // Populate form for edit
+      this.employeeForm = this.formBuilder.group({
+        firstName: [employee.FirstName, [Validators.required, Validators.minLength(2)]],
+        lastName: [employee.LastName, [Validators.required, Validators.minLength(2)]],
+        email: [employee.EmployeeEmail, [Validators.required, Validators.email]],
+        employeeNumber: [employee.EmployeeNumber],
+        supervisorId: [employee.SupervisorId],
+        roles: [employee.EmployeeRoles || []]
+      });
+    } else {
+      // Reset form for new employee
+      this.employeeForm = this.formBuilder.group({
+        firstName: ['', [Validators.required, Validators.minLength(2)]],
+        lastName: ['', [Validators.required, Validators.minLength(2)]],
+        email: ['', [Validators.required, Validators.email]],
+        employeeNumber: [''],
+        supervisorId: [''],
+        roles: [[]]
+      });
+    }
+  }
+
+  // Add methods to fetch roles and supervisors if not already populated
+  fetchRoles() {
+    this.employeeService.getRoles().subscribe({
+      next: (roles) => {
+        this.roles = roles;
+      },
+      error: (err) => {
+        console.error('Error fetching roles:', err);
+      }
+    });
+  }
+
+  fetchSupervisors() {
+    this.employeeService.getEmployees().subscribe({
+      next: (supervisors) => {
+        this.supervisors = supervisors;
+        console.log('Supervisors fetched:', this.supervisors);
+      },
+      error: (err) => {
+        console.error('Error fetching supervisors:', err);
+      }
+    });
   }
 
   closeModal() {
     this.isModalOpen = false;
     this.selectedEmployee = null;
+    this.employeeForm.reset(); // Reset form when closing
   }
 
   saveEmployee(employee: Employee) {

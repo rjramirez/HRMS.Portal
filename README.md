@@ -1,59 +1,46 @@
-# Frontend
+# SS HRMS Portal
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.1.3.
+[![Build Status](https://img.shields.io/github/actions/workflow/status/rjramirez/HRMS.Portal/build.yml?branch=main&style=for-the-badge)](https://github.com/rjramirez/HRMS.Portal/actions)
+[![Code Quality](https://img.shields.io/codacy/grade/your-project-id?style=for-the-badge)](https://www.codacy.com/gh/rjramirez/HRMS.Portal)
+[![Version](https://img.shields.io/github/v/release/rjramirez/HRMS.Portal?style=for-the-badge)](https://github.com/rjramirez/HRMS.Portal/releases)
+[![License](https://img.shields.io/github/license/rjramirez/HRMS.Portal?style=for-the-badge)](https://github.com/rjramirez/HRMS.Portal/blob/main/LICENSE)
 
-## Development server
+## Project Overview
+SS HRMS Demo is a comprehensive Human Resource Management System designed to streamline employee management processes.
 
-To start a local development server, run:
+## Technology Stack
+- **Frontend**: Angular 19 Typescript
+- **Backend**: .NET8 C#
+- **Authentication**: Supabase with Email/PW or Google SSO
+- **Database**: SQL Server
+- **Design Patterns**: Unit of Work, Repository
 
-```bash
-ng serve
-```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Features
+- Employee Management
+- Authentication and Authorization
+- Role-based Access Control (coming soon)
 
-## Code scaffolding
+## Prerequisites
+- Node.js
+- Angular CLI
+- Supabase Account
+- SQL Server
+- Google SSO Setup (optional)
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Setup Instructions
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Configure Supabase credentials
+4. Run the application: `ng serve`
 
-```bash
-ng generate component component-name
-```
+## Deployment
+- Frontend: Angular 19
+- Backend: .NET8 C#
+- Database: SQL Server
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Contributing
+Please read CONTRIBUTING.md for details on our code of conduct and the process for submitting pull requests.
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## License
+This project is licensed under the MIT License - see the LICENSE.md file for details.

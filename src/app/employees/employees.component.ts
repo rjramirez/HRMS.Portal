@@ -191,6 +191,8 @@ export class EmployeesComponent implements OnInit {
     
     // Reset the form when opening the modal
     if (employee) {
+      this.supervisors = this.supervisors.filter(s => s.EmployeeNumber.toString() !== employee.EmployeeNumber.toString());
+
       // Populate form for edit
       this.employeeForm = this.formBuilder.group({
         firstName: [employee.FirstName, [Validators.required, Validators.minLength(2)]],

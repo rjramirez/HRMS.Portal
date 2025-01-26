@@ -175,7 +175,7 @@ export class EmployeeModalComponent implements OnInit, OnChanges {
         FirstName: formValue.firstName,
         LastName: formValue.lastName,
         EmployeeEmail: formValue.email,
-        SupervisorId: formValue.supervisor ? formValue.supervisor.EmployeeNumber : '',
+        SupervisorId: formValue.supervisor ? formValue.supervisor : '',
         EmployeeRoles: employeeRoles,
         Active: true,
         CreatedDate: new Date(),
@@ -184,7 +184,6 @@ export class EmployeeModalComponent implements OnInit, OnChanges {
         UpdatedBy: 'system'
       };
 
-      console.log("Updating employee: ", employee);
       // Emit save event
       this.save.emit(employee);
     } else {

@@ -1,4 +1,4 @@
-name: Node.js CI/CD
+name: Angular CI/CD
 
 on:
   push:
@@ -28,17 +28,11 @@ jobs:
     - name: Install Dependencies
       run: npm ci
     
-    # - name: Lint Code
-    #   run: npm run lint
+    - name: Build Project
+      run: npm run build:prod
     
     - name: Run Unit Tests
       run: npm run test:ci
-    
-    - name: Build Project
-      run: npm run build
-    
-    # - name: Run E2E Tests
-    #   run: npm run e2e
     
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
@@ -47,25 +41,24 @@ jobs:
         path: dist/
         retention-days: 5
 
-  # Optional deployment job
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'  # Only deploy from main branch
+  # deploy:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main'
     
-    steps:
-    - uses: actions/checkout@v4
+  #   steps:
+  #   - uses: actions/checkout@v4
     
-    - name: Download Build Artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: dist-22.13.1  # Use the latest Node.js version build
+  #   - name: Download Build Artifacts
+  #     uses: actions/download-artifact@v4
+  #     with:
+  #       name: dist-22.13.1
     
-    - name: Deploy to Production
-      env:
-        DEPLOY_KEY: ${{ secrets.SERVER_SSH_KEY }}
-      run: |
-        echo "Deploying to production server..."
-        # Add your deployment script here
-        # Example:
-        # scp -r dist/* user@yourserver:/path/to/deployment
+  #   - name: Deploy to Production
+  #     env:
+  #       DEPLOY_KEY: ${{ secrets.SERVER_SSH_KEY }}
+  #     run: |
+  #       echo "Deploying to production server..."
+  #       # Add your deployment script here
+  #       # Example:
+  #       # scp -r dist/* user@yourserver:/path/to/deployment

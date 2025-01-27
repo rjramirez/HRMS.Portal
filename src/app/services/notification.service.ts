@@ -1,41 +1,45 @@
 import { Injectable } from '@angular/core';
-import { ToastrService } from 'ngx-toastr';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
-  constructor(private toastr: ToastrService) {}
+  constructor(private snackBar: MatSnackBar) {}
 
-  success(message: string, title: string = 'Success', options: any = {}) {
-    const defaultOptions = { 
-      positionClass: 'toast-top-right',
-      timeOut: 3000 
-    };
-    this.toastr.success(message, title, { ...defaultOptions, ...options });
+  success(message: string, duration: number = 3000) {
+    this.snackBar.open(message, 'Close', {
+      duration,
+      verticalPosition: 'top',
+      horizontalPosition: 'center',
+      panelClass: ['success-snackbar']
+    });
   }
 
-  error(message: string, title: string = 'Error', options: any = {}) {
-    const defaultOptions = { 
-      positionClass: 'toast-top-right',
-      timeOut: 3000 
-    };
-    this.toastr.error(message, title, { ...defaultOptions, ...options });
+  error(message: string, duration: number = 3000) {
+    this.snackBar.open(message, 'Close', {
+      duration,
+      verticalPosition: 'top',
+      horizontalPosition: 'center',
+      panelClass: ['error-snackbar']
+    });
   }
 
-  warning(message: string, title: string = 'Warning', options: any = {}) {
-    const defaultOptions = { 
-      positionClass: 'toast-top-right',
-      timeOut: 3000 
-    };
-    this.toastr.warning(message, title, { ...defaultOptions, ...options });
+  warning(message: string, duration: number = 3000) {
+    this.snackBar.open(message, 'Close', {
+      duration,
+      verticalPosition: 'top',
+      horizontalPosition: 'center',
+      panelClass: ['warning-snackbar']
+    });
   }
 
-  info(message: string, title: string = 'Information', options: any = {}) {
-    const defaultOptions = { 
-      positionClass: 'toast-top-right',
-      timeOut: 3000 
-    };
-    this.toastr.info(message, title, { ...defaultOptions, ...options });
+  info(message: string, duration: number = 3000) {
+    this.snackBar.open(message, 'Close', {
+      duration,
+      verticalPosition: 'top',
+      horizontalPosition: 'center',
+      panelClass: ['info-snackbar']
+    });
   }
 }

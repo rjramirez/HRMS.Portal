@@ -39,3 +39,6 @@ Please read CONTRIBUTING.md for details on our code of conduct and the process f
 
 ## License
 This project is licensed under the MIT License - see the LICENSE.md file for details.
+
+## Support
+if you find this project helpful to you, and you have questions and concerns feel free to reach out to devrj@outlook.ph

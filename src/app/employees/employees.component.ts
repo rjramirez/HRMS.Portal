@@ -55,6 +55,7 @@ export class EmployeesComponent implements OnInit {
 
   loadEmployees() {
     this.loadingService.show();
+    this.supervisors = [];
     this.employeeService.getEmployees().subscribe({
       next: (response) => {
         this.allEmployees = response.map((emp: any) => ({
@@ -173,11 +174,6 @@ export class EmployeesComponent implements OnInit {
   }
 
   openModal(employee: Employee | null = null) {
-    this.notificationService.success(
-      'TESTING', 
-      'Success', 
-      { timeOut: 3000 }
-    );
 
     if (!this.roles || this.roles.length === 0) {
       this.fetchRoles();
@@ -250,23 +246,23 @@ export class EmployeesComponent implements OnInit {
       : this.employeeService.updateEmployee(employee);
     
     saveObservable.subscribe({
-      next: () => {
+      next: (data) => {
         this.notificationService.success(
-          isNewEmployee ? 'Employee created successfully' : 'Employee updated successfully', 
-          'Success', 
-          { timeOut: 3000 }
-        );
+          isNewEmployee 
+            ? `Employee created successfully ${data?.EmployeeNumber ? `(${data.EmployeeNumber})` : ''} ${data?.FirstName || ''} ${data?.LastName || ''}`.trim()
+            : `Employee updated successfully ${data?.EmployeeNumber ? `(${data.EmployeeNumber})` : ''} ${data?.FirstName || ''} ${data?.LastName || ''}`.trim()
+        ,5000);
         
         this.closeModal();
         this.loadEmployees();
+        console.log(`${isNewEmployee ? 'Added' : 'Updated'} Employee Data:`, data);
       },
       error: (error) => {
         this.notificationService.error(
-          isNewEmployee ? 'Failed to create employee' : 'Failed to update employee', 
-          'Error', 
-          { timeOut: 3000 }
+          isNewEmployee ? 'Failed to create employee' : 'Failed to update employee'
         );
         console.error('Save employee error:', error);
+        this.loadingService.hide();
       },
       complete: () => {
         this.loadingService.hide();
@@ -279,13 +275,13 @@ export class EmployeesComponent implements OnInit {
   }
 
   deleteEmployee(employeeNumber: number) {
-    if (confirm('Are you sure you want to delete this employee?')) {
+    if (confirm(`Are you sure you want to delete this employee (${employeeNumber})?`)) {
       this.employeeService.deleteEmployee(employeeNumber).subscribe(() => {
         this.allEmployees = this.allEmployees.filter(emp => emp.EmployeeNumber !== employeeNumber);
         this.applySearchAndPagination();
-        this.notificationService.success('Employee deleted successfully');
+        this.notificationService.success(`Employee (${employeeNumber}) deleted successfully`);
       }, error => {
-        this.notificationService.error('Error deleting employee');
+        this.notificationService.error(`Error deleting employee (${employeeNumber})`);
       });
     }
   }

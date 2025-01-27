@@ -12,3 +12,24 @@ body {
 .mat-mdc-option.mdc-list-item {
   background-color: #fff !important;
 }
+
+// Snackbar custom styles
+.success-snackbar {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.error-snackbar {
+  background-color: #F44336;
+  color: white;
+}
+
+.warning-snackbar {
+  background-color: #FF9800;
+  color: white;
+}
+
+.info-snackbar {
+  background-color: #2196F3;
+  color: white;
+}

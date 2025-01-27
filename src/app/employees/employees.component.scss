@@ -1,6 +1,6 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 .container {
     @apply p-4 mx-auto;
@@ -34,4 +34,3 @@
 .bg-black {
   background-color: rgba(0, 0, 0, 0.5);
 }
-  

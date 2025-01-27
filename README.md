@@ -1,10 +1,5 @@
 # SS HRMS Portal
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/rjramirez/HRMS.Portal/build.yml?branch=main&style=for-the-badge)](https://github.com/rjramirez/HRMS.Portal/actions)
-[![Code Quality](https://img.shields.io/codacy/grade/your-project-id?style=for-the-badge)](https://www.codacy.com/gh/rjramirez/HRMS.Portal)
-[![Version](https://img.shields.io/github/v/release/rjramirez/HRMS.Portal?style=for-the-badge)](https://github.com/rjramirez/HRMS.Portal/releases)
-[![License](https://img.shields.io/github/license/rjramirez/HRMS.Portal?style=for-the-badge)](https://github.com/rjramirez/HRMS.Portal/blob/main/LICENSE)
-
 ## Project Overview
 SS HRMS Demo is a comprehensive Human Resource Management System designed to streamline employee management processes.
 
